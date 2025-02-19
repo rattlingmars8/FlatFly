@@ -1,6 +1,8 @@
 "use client";
+import dynamic from "next/dynamic";
+
+const MapComponent = dynamic(() => import("./components/MapComponent"), { ssr: false });
 import { useEffect, useState, useMemo } from "react";
-import MapComponent from "./components/MapComponent";
 import FilterSection from "./components/FilterSection";
 import PropertyListings from "./components/PropertyListings";
 import AnalyticsPanel from "./components/AnalyticsPanel";

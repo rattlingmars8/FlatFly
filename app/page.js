@@ -1,123 +1,98 @@
-// "use client"
-//
-// import React, {useEffect, useState} from 'react';
-// import Map from '../components/Map';
-// import Filters from "../components/Filters";
-//
-// const HomePage = () => {
-//     const [filteredProperties, setFilteredProperties] = useState([]);
-//     const [filters, setFilters] = useState({
-//         minPrice: '',
-//         maxPrice: '',
-//         minArea: '',
-//         maxArea: '',
-//     });
-//
-//     useEffect(() => {
-//         fetch('/sample.json')
-//             .then(res => res.json())
-//             .then(data => {
-//                 const dataArray = Object.values(data);
-//                 setFilteredProperties(dataArray);
-//             });
-//     }, []);
-//
-//     const handleFilterChange = (e) => {
-//         setFilters({...filters, [e.target.name]: e.target.value});
-//     };
-//
-//     const applyFilters = () => {
-//         fetch('/sample.json')
-//             .then(res => res.json())
-//             .then(data => {
-//                 const dataArray = Object.values(data);
-//                 const filtered = dataArray.filter(prop => {
-//                     return (
-//                         (!filters.minPrice || prop.price >= filters.minPrice) &&
-//                         (!filters.maxPrice || prop.price <= filters.maxPrice) &&
-//                         (!filters.minArea || prop.flat_area >= filters.minArea) &&
-//                         (!filters.maxArea || prop.flat_area <= filters.maxArea)
-//                     );
-//                 });
-//                 setFilteredProperties(filtered);
-//             });
-//     };
-//
-//     return (
-//         <main className="flex min-h-screen flex-col items-center justify-center p-6">
-//             <h1 className="text-4xl font-bold mb-4">FlatFly Dashboard</h1>
-//             <div className="w-full flex min-h-[600px] flex-col md:flex-row gap-4">
-//                 {/* Фільтри */}
-//                 <Filters filters={filters} onApplyFilters={applyFilters}/>
-//
-//                 {/* Карта */}
-//                 <div className="w-full md:w-2/3">
-//                     <Map properties={filteredProperties}/>
-//                 </div>
-//             </div>
-//         </main>
-//     );
-// };
-//
-// export default HomePage;
+"use client";
+import { useEffect, useState, useMemo } from "react";
+import MapComponent from "./components/MapComponent";
+import FilterSection from "./components/FilterSection";
+import PropertyListings from "./components/PropertyListings";
+import AnalyticsPanel from "./components/AnalyticsPanel";
 
+const Home = () => {
+  const [listings, setListings] = useState([]);
+  const [stats, setStats] = useState({});
+  const [filters, setFilters] = useState({
+    minPrice: "",
+    maxPrice: "",
+    minArea: "",
+    maxArea: "",
+    disposition: [],
+  });
+  const [selectedHex, setSelectedHex] = useState(null);
 
-"use client"
+  useEffect(() => {
+    const fetchStats = async () => {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      setStats(data);
+    };
+    fetchStats();
+  }, []);
 
-import React, {useEffect, useState} from 'react';
-import Map from '../components/Map';
-import Filters from '../components/Filters';
+  useEffect(() => {
+    const fetchListings = async () => {
+      const queryString = new URLSearchParams(filters).toString();
+      const res = await fetch(`/api/listings?${queryString}`);
+      const data = await res.json();
+      setListings(data);
+    };
+    fetchListings();
+  }, [filters]);
 
-const HomePage = () => {
-    const [filteredProperties, setFilteredProperties] = useState([]);
-    const [filters, setFilters] = useState({
-        minPrice: '',
-        maxPrice: '',
-        minArea: '',
-        maxArea: '',
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+  };
+
+  const handleFormReset = () => {
+    setFilters({
+      minPrice: "",
+      maxPrice: "",
+      minArea: "",
+      maxArea: "",
+      disposition: [],
     });
+  };
 
-    useEffect(() => {
-        fetch('/sample.json')
-            .then(res => res.json())
-            .then(data => {
-                const dataArray = Object.values(data);
-                setFilteredProperties(dataArray);
-            });
-    }, []);
+  const filteredListings = useMemo(() => listings, [listings]);
 
-    const handleFilterChange = (e) => {
-        setFilters({...filters, [e.target.name]: e.target.value});
-    };
+  return (
+    <div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
+      <div className="flex flex-col md:flex-row gap-8 items-center">
+        <div className="md:w-1/3 bg-white shadow-xl rounded-2xl p-6 border border-borderGray">
+          <FilterSection
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onSubmit={handleFormSubmit}
+            onReset={handleFormReset}
+          />
+        </div>
 
-    const applyFilters = () => {
-        fetch('/sample.json')
-            .then(res => res.json())
-            .then(data => {
-                const dataArray = Object.values(data);
-                const filtered = dataArray.filter(prop => {
-                    return (
-                        (!filters.minPrice || prop.price >= filters.minPrice) &&
-                        (!filters.maxPrice || prop.price <= filters.maxPrice) &&
-                        (!filters.minArea || prop.flat_area >= filters.minArea) &&
-                        (!filters.maxArea || prop.flat_area <= filters.maxArea)
-                    );
-                });
-                setFilteredProperties(filtered);
-            });
-    };
+        <div className="md:w-2/3 w-full relative h-[35vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
+          <MapComponent
+            listings={filteredListings}
+            hexStats={stats}
+            onSelectHex={setSelectedHex}
+          />
+        </div>
+      </div>
 
-    return (
-        <main className="flex min-h-screen flex-col items-center p-6">
-            <h1 className="text-4xl font-bold mb-4">FlatFly Dashboard</h1>
-            <div className="w-full flex min-h-[600px] flex-col md:flex-row gap-4">
-                <Filters filters={filters} onApplyFilters={applyFilters} onFilterChange={handleFilterChange}/>
-                <div className="w-full md:w-2/3">
-                    <Map properties={filteredProperties}/>
-                </div>
-            </div>
-        </main>
-    );
+      <div className="bg-white shadow-lg rounded-2xl p-6 border border-borderGray">
+        <h2 className="text-2xl font-semibold text-primary mb-4">
+          Property Listings
+        </h2>
+        <PropertyListings listings={filteredListings} />
+      </div>
+
+      {selectedHex && (
+        <AnalyticsPanel
+          selectedHex={selectedHex}
+          stats={stats}
+          onClose={() => setSelectedHex(null)}
+        />
+      )}
+    </div>
+  );
 };
 
-export default HomePage;
+export default Home;

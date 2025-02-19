@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import { cellToBoundary } from "h3-js";

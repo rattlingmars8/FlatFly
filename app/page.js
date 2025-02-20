@@ -1,7 +1,9 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const MapComponent = dynamic(() => import("./components/MapComponent"), { ssr: false });
+const MapComponent = dynamic(() => import("./components/MapComponent"), {
+  ssr: false,
+});
 import { useEffect, useState, useMemo } from "react";
 import FilterSection from "./components/FilterSection";
 import PropertyListings from "./components/PropertyListings";
@@ -70,20 +72,13 @@ const Home = () => {
           />
         </div>
 
-        <div className="md:w-2/3 w-full relative h-[35vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
+        <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
           <MapComponent
             listings={filteredListings}
             hexStats={stats}
             onSelectHex={setSelectedHex}
           />
         </div>
-      </div>
-
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-borderGray">
-        <h2 className="text-2xl font-semibold text-primary mb-4">
-          Property Listings
-        </h2>
-        <PropertyListings listings={filteredListings} />
       </div>
 
       {selectedHex && (
@@ -93,6 +88,16 @@ const Home = () => {
           onClose={() => setSelectedHex(null)}
         />
       )}
+
+      <PropertyListings listings={filteredListings} />
+
+      {/*{selectedHex && (*/}
+      {/*  <AnalyticsPanel*/}
+      {/*    selectedHex={selectedHex}*/}
+      {/*    stats={stats}*/}
+      {/*    onClose={() => setSelectedHex(null)}*/}
+      {/*  />*/}
+      {/*)}*/}
     </div>
   );
 };

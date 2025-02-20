@@ -54,10 +54,7 @@ const MapComponent = ({ listings, onSelectHex }) => {
       zoom={13}
       style={{ height: "100%", width: "100%" }}
     >
-      <TileLayer
-        url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
-        attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, CC BY 3.0 — Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <MapClickHandler />
       {hexPolygons.map((polygon) => (
         <Polygon

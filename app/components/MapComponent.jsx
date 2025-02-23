@@ -76,7 +76,7 @@ const MapComponent = ({ listings, onSelectHex }) => {
       ))}
       {listings.map((listing) => (
         <Marker
-          key={listing.id}
+          key={listing._id}
           position={[listing.latitude, listing.longitude]}
           icon={customIcon}
         >

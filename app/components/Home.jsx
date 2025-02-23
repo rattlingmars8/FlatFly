@@ -17,7 +17,18 @@ const defaultFilters = {
   disposition: [],
 };
 
-const fetcher = (url) => fetch(url).then((res) => res.json());
+const fetcher = async (url) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorInfo = await res.json();
+    const error = new Error("An error occurred while fetching the data");
+    error.info = errorInfo;
+    error.status = res.status;
+    throw error;
+  }
+  return res.json();
+};
+
 
 const Home = () => {
   const router = useRouter();
@@ -56,10 +67,22 @@ const Home = () => {
     return params.toString();
   }, [filtersFromUrl]);
 
-  const { data: listings, error: listingsError } = useSWR(
-    `/api/listings${listingsQueryString ? `?${listingsQueryString}` : ""}`,
-    fetcher
-  );
+
+  function useListings(listingsQueryString) {
+    const { data: responseData, error: listingsError } = useSWR(
+      `/api/listings${listingsQueryString ? `?${listingsQueryString}` : ""}`,
+      fetcher
+    );
+
+    const listings = responseData?.listings || [];
+    const totalMatches = responseData?.totalMatches || 0;
+    const totalPages = responseData?.totalPages || 0;
+    const currentPage = responseData?.currentPage || 1;
+
+    return { listings, totalMatches, totalPages, currentPage, listingsError };
+  }
+
+  const { listings, totalMatches, totalPages, currentPage, listingsError } = useListings(listingsQueryString);
 
   const { data: stats, error: statsError } = useSWR("/api/stats", fetcher);
 

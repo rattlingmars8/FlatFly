@@ -1,65 +1,66 @@
-import fs from "fs";
-import path from "path";
-import { convertSampleData, filterListings } from "@/utils/dataUtils";
+import connectToDB from '../../lib/db';
+import Listing from "../../../models/Listing";
+
+const buildQuery = (params) => ({
+  ...( (params.minPrice || params.maxPrice) && {
+    price: {
+      ...(params.minPrice && { $gte: parseFloat(params.minPrice) }),
+      ...(params.maxPrice && { $lte: parseFloat(params.maxPrice) }),
+    },
+  }),
+  ...( (params.minArea || params.maxArea) && {
+    flat_area: {
+      ...(params.minArea && { $gte: parseFloat(params.minArea) }),
+      ...(params.maxArea && { $lte: parseFloat(params.maxArea) }),
+    },
+  }),
+  ...( params.disposition && {
+    $or: params.disposition
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(val => ({
+        $expr: { $gt: [{ $indexOfCP: ["$name", val] }, -1] },
+      })),
+  }),
+});
 
 export async function GET(request) {
   try {
+    await connectToDB();
+
     const { searchParams } = new URL(request.url);
-    const minPrice = searchParams.get("minPrice");
-    const maxPrice = searchParams.get("maxPrice");
-    const minArea = searchParams.get("minArea");
-    const maxArea = searchParams.get("maxArea");
-    const disposition = searchParams.get("disposition");
+    const params = Object.fromEntries(searchParams.entries());
+    const page = parseInt(params.page || "1", 10) || 1;
+    const limit = 30;
 
-    const filePath = path.join(process.cwd(), "public/data/sample.json");
-    const fileContents = fs.readFileSync(filePath, "utf8");
+    const query = buildQuery(params);
 
-    if (!fileContents) {
-      console.error("File is empty:", filePath);
-      return new Response(JSON.stringify({ error: "File is empty" }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
+    const totalMatches = await Listing.countDocuments(query);
+    const totalPages = Math.ceil(totalMatches / limit);
 
-    let rawData;
-    try {
-      rawData = JSON.parse(fileContents);
-    } catch (error) {
-      console.error("Failed to parse JSON:", error);
-      return new Response(JSON.stringify({ error: "Failed to parse JSON" }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
+    const listings = await Listing.find(query)
+      .sort({ first_seen_at: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    const listings = convertSampleData(rawData);
-    const filters = {
-      minPrice: minPrice ? parseFloat(minPrice) : undefined,
-      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-      minArea: minArea ? parseFloat(minArea) : undefined,
-      maxArea: maxArea ? parseFloat(maxArea) : undefined,
-      disposition: disposition ? disposition.split(",") : [],
+    const responseData = {
+      totalMatches,
+      totalPages,
+      currentPage: page,
+      listings,
     };
 
-    const filteredListings = filterListings(listings, filters);
-
-    return new Response(JSON.stringify(filteredListings), {
-      headers: {
-        "Content-Type": "application/json",
-      },
+    return new Response(JSON.stringify(responseData), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error fetching listings:", error);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
   }
 }

@@ -1,81 +1,108 @@
 "use client";
 import dynamic from "next/dynamic";
-
-const MapComponent = dynamic(() => import("./components/MapComponent"), {
-  ssr: false,
-});
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import useSWR from "swr";
 import FilterSection from "./components/FilterSection";
 import PropertyListings from "./components/PropertyListings";
 import AnalyticsPanel from "./components/AnalyticsPanel";
 
+const MapComponent = dynamic(() => import("./components/MapComponent"), { ssr: false });
+
+const defaultFilters = {
+  minPrice: "",
+  maxPrice: "",
+  minArea: "",
+  maxArea: "",
+  disposition: [],
+};
+
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
 const Home = () => {
-  const [listings, setListings] = useState([]);
-  const [stats, setStats] = useState({});
-  const [filters, setFilters] = useState({
-    minPrice: "",
-    maxPrice: "",
-    minArea: "",
-    maxArea: "",
-    disposition: [],
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const filtersFromUrl = useMemo(() => {
+    if (!searchParams) return defaultFilters;
+    const minPrice = searchParams.get("minPrice") || "";
+    const maxPrice = searchParams.get("maxPrice") || "";
+    const minArea = searchParams.get("minArea") || "";
+    const maxArea = searchParams.get("maxArea") || "";
+    const disposition = searchParams.get("disposition")
+      ? searchParams.get("disposition").split(",")
+      : [];
+    return { minPrice, maxPrice, minArea, maxArea, disposition };
+  }, [searchParams]);
+
+  const [formFilters, setFormFilters] = useState(defaultFilters);
   const [selectedHex, setSelectedHex] = useState(null);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const res = await fetch("/api/stats");
-      const data = await res.json();
-      setStats(data);
-    };
-    fetchStats();
+    setFormFilters(filtersFromUrl);
+  }, [filtersFromUrl]);
+
+  const listingsQueryString = useMemo(() => {
+    const params = new URLSearchParams();
+    Object.entries(filtersFromUrl).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        if (value.length) {
+          params.append(key, value.join(","));
+        }
+      } else if (value) {
+        params.append(key, value);
+      }
+    });
+    return params.toString();
+  }, [filtersFromUrl]);
+
+  const { data: listings, error: listingsError } = useSWR(
+    `/api/listings${listingsQueryString ? `?${listingsQueryString}` : ""}`,
+    fetcher
+  );
+
+  const { data: stats, error: statsError } = useSWR("/api/stats", fetcher);
+
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFormFilters(newFilters);
   }, []);
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      const queryString = new URLSearchParams(filters).toString();
-      const res = await fetch(`/api/listings?${queryString}`);
-      const data = await res.json();
-      setListings(data);
-    };
-    fetchListings();
-  }, [filters]);
 
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-  };
-
-  const handleFormReset = () => {
-    setFilters({
-      minPrice: "",
-      maxPrice: "",
-      minArea: "",
-      maxArea: "",
-      disposition: [],
+  const handleFormSubmit = useCallback(() => {
+    const params = new URLSearchParams();
+    Object.entries(formFilters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        if (value.length) {
+          params.append(key, value.join(","));
+        }
+      } else if (value) {
+        params.append(key, value);
+      }
     });
-  };
+    router.push(`/?${params.toString()}`, undefined, { shallow: true });
+  }, [formFilters, router]);
 
-  const filteredListings = useMemo(() => listings, [listings]);
+
+  const handleFormReset = useCallback(() => {
+    router.push("/", undefined, { shallow: true });
+  }, [router]);
 
   return (
     <div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
       <div className="flex flex-col md:flex-row gap-8 items-center">
         <div className="md:w-1/3 bg-white shadow-xl rounded-2xl p-6 border border-borderGray">
           <FilterSection
-            filters={filters}
+            filters={formFilters}
             onFilterChange={handleFilterChange}
             onSubmit={handleFormSubmit}
             onReset={handleFormReset}
           />
         </div>
-
         <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
           <MapComponent
-            listings={filteredListings}
-            hexStats={stats}
+            listings={listings || []}
+            hexStats={stats || {}}
             onSelectHex={setSelectedHex}
           />
         </div>
@@ -84,22 +111,15 @@ const Home = () => {
       {selectedHex && (
         <AnalyticsPanel
           selectedHex={selectedHex}
-          stats={stats}
+          stats={stats || {}}
           onClose={() => setSelectedHex(null)}
         />
       )}
 
-      <PropertyListings listings={filteredListings} />
-
-      {/*{selectedHex && (*/}
-      {/*  <AnalyticsPanel*/}
-      {/*    selectedHex={selectedHex}*/}
-      {/*    stats={stats}*/}
-      {/*    onClose={() => setSelectedHex(null)}*/}
-      {/*  />*/}
-      {/*)}*/}
+      <PropertyListings listings={listings || []} />
     </div>
   );
 };
 
 export default Home;
+

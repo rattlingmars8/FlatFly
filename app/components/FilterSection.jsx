@@ -1,44 +1,28 @@
-"use client";
-import { useState } from "react";
-import { flatType } from "@/utils/dataUtils";
 import CheckIcon from "@/app/components/CheckIcon";
+import { flatType } from "@/utils/dataUtils";
 
 const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
-  const [localFilters, setLocalFilters] = useState(filters);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setLocalFilters({
-      ...localFilters,
-      [name]: value,
-    });
+    onFilterChange({ ...filters, [name]: value });
   };
 
   const handleCheckboxChange = (e) => {
-    const { name, value } = e.target;
-    const isChecked = e.target.checked;
+    const { name, value, checked } = e.target;
+    const updatedDisposition = checked
+      ? [...filters.disposition, value]
+      : filters.disposition.filter((item) => item !== value);
 
-    let updatedDisposition = [...localFilters[name]];
-    if (isChecked) {
-      updatedDisposition.push(value);
-    } else {
-      updatedDisposition = updatedDisposition.filter((item) => item !== value);
-    }
-
-    setLocalFilters({
-      ...localFilters,
-      [name]: updatedDisposition,
-    });
+    onFilterChange({ ...filters, [name]: updatedDisposition });
   };
 
   const handleSubmit = (e) => {
-    onSubmit(e);
-    onFilterChange(localFilters);
+    e.preventDefault();
+    onSubmit();
   };
 
   const handleReset = () => {
     onReset();
-    setLocalFilters(filters);
   };
 
   return (
@@ -51,7 +35,7 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
           <input
             type="number"
             name="minPrice"
-            value={localFilters.minPrice}
+            value={filters.minPrice}
             onChange={handleInputChange}
             placeholder="Min Price"
             className="w-full p-2 border border-borderGray rounded focus:ring-2 focus:ring-accent"
@@ -59,7 +43,7 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
           <input
             type="number"
             name="maxPrice"
-            value={localFilters.maxPrice}
+            value={filters.maxPrice}
             onChange={handleInputChange}
             placeholder="Max Price"
             className="w-full p-2 border border-borderGray rounded focus:ring-2 focus:ring-accent"
@@ -74,7 +58,7 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
           <input
             type="number"
             name="minArea"
-            value={localFilters.minArea}
+            value={filters.minArea}
             onChange={handleInputChange}
             placeholder="Min Area"
             className="w-full p-2 border border-borderGray rounded focus:ring-2 focus:ring-accent"
@@ -82,7 +66,7 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
           <input
             type="number"
             name="maxArea"
-            value={localFilters.maxArea}
+            value={filters.maxArea}
             onChange={handleInputChange}
             placeholder="Max Area"
             className="w-full p-2 border border-borderGray rounded focus:ring-2 focus:ring-accent"
@@ -95,33 +79,28 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
         </label>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {flatType.map((option) => (
-            <div
-              key={option}
-              className="flex items-center space-x-3 cursor-pointer"
-            >
+            <div key={option} className="flex items-center space-x-3 cursor-pointer">
               <input
                 id={`disposition-${option}`}
                 type="checkbox"
                 name="disposition"
                 value={option}
-                checked={localFilters.disposition.includes(option)}
+                checked={filters.disposition.includes(option)}
                 onChange={handleCheckboxChange}
                 className="hidden"
               />
               <label
                 htmlFor={`disposition-${option}`}
                 className={`flex items-center space-x-3 text-sm text-text hover:text-accent hover:cursor-pointer ${
-                  localFilters.disposition.includes(option) ? "text-accent" : ""
+                  filters.disposition.includes(option) ? "text-accent" : ""
                 }`}
               >
                 <span
                   className={`inline-block w-5 h-5 rounded border border-borderGray relative ${
-                    localFilters.disposition.includes(option)
-                      ? "bg-accent border-accent"
-                      : ""
+                    filters.disposition.includes(option) ? "bg-accent border-accent" : ""
                   }`}
                 >
-                  {localFilters.disposition.includes(option) && (
+                  {filters.disposition.includes(option) && (
                     <CheckIcon className="absolute inset-0 w-full h-full text-white" />
                   )}
                 </span>

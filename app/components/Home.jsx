@@ -1,13 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {useState, useMemo, useCallback, useEffect} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 import useSWR from "swr";
 import FilterSection from "./FilterSection";
 import PropertyListings from "./PropertyListings";
 import AnalyticsPanel from "./AnalyticsPanel";
+import Pagination from "@/app/components/Pagination";
+import {fetcher, useListings} from "@/app/hooks/useListings";
 
-const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
+const MapComponent = dynamic(() => import("./MapComponent"), {ssr: false});
 
 const defaultFilters = {
   minPrice: "",
@@ -15,18 +17,6 @@ const defaultFilters = {
   minArea: "",
   maxArea: "",
   disposition: [],
-};
-
-const fetcher = async (url) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errorInfo = await res.json();
-    const error = new Error("An error occurred while fetching the data");
-    error.info = errorInfo;
-    error.status = res.status;
-    throw error;
-  }
-  return res.json();
 };
 
 
@@ -43,7 +33,7 @@ const Home = () => {
     const disposition = searchParams.get("disposition")
       ? searchParams.get("disposition").split(",")
       : [];
-    return { minPrice, maxPrice, minArea, maxArea, disposition };
+    return {minPrice, maxPrice, minArea, maxArea, disposition};
   }, [searchParams]);
 
   const [formFilters, setFormFilters] = useState(defaultFilters);
@@ -54,43 +44,32 @@ const Home = () => {
   }, [filtersFromUrl]);
 
   const listingsQueryString = useMemo(() => {
-    const params = new URLSearchParams();
+    const params = Object.fromEntries(searchParams.entries());
+    if (!params.page) {
+      params.page = "1";
+    }
+
+    const sp = new URLSearchParams();
+
     Object.entries(filtersFromUrl).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         if (value.length) {
-          params.append(key, value.join(","));
+          sp.append(key, value.join(","));
         }
       } else if (value) {
-        params.append(key, value);
+        sp.append(key, value);
       }
     });
-    return params.toString();
-  }, [filtersFromUrl]);
+    sp.set("page", params.page);
+    return sp.toString();
+  }, [filtersFromUrl, searchParams]);
 
-
-  function useListings(listingsQueryString) {
-    const { data: responseData, error: listingsError } = useSWR(
-      `/api/listings${listingsQueryString ? `?${listingsQueryString}` : ""}`,
-      fetcher
-    );
-
-    const listings = responseData?.listings || [];
-    const totalMatches = responseData?.totalMatches || 0;
-    const totalPages = responseData?.totalPages || 0;
-    const currentPage = responseData?.currentPage || 1;
-
-    return { listings, totalMatches, totalPages, currentPage, listingsError };
-  }
-
-  const { listings, totalMatches, totalPages, currentPage, listingsError } = useListings(listingsQueryString);
-
-  const { data: stats, error: statsError } = useSWR("/api/stats", fetcher);
-
+  const {listings, totalMatches, totalPages, currentPage} = useListings(listingsQueryString);
+  const {data: stats} = useSWR("/api/stats", fetcher);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFormFilters(newFilters);
   }, []);
-
 
   const handleFormSubmit = useCallback(() => {
     const params = new URLSearchParams();
@@ -103,13 +82,23 @@ const Home = () => {
         params.append(key, value);
       }
     });
-    router.push(`/?${params.toString()}`, undefined, { shallow: true });
+
+    params.set("page", "1");
+    router.push(`/?${params.toString()}`, undefined, {shallow: true});
   }, [formFilters, router]);
 
-
   const handleFormReset = useCallback(() => {
-    router.push("/", undefined, { shallow: true });
+    router.push("/", undefined, {shallow: true});
   }, [router]);
+
+  const handlePageChange = useCallback(
+    (page) => {
+      const params = Object.fromEntries(searchParams.entries());
+      params.page = page;
+      router.push(`/?${new URLSearchParams(params).toString()}`, undefined, {shallow: true});
+    },
+    [searchParams, router]
+  );
 
   return (
     <div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
@@ -122,27 +111,32 @@ const Home = () => {
             onReset={handleFormReset}
           />
         </div>
-        <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
-          <MapComponent
-            listings={listings || []}
-            hexStats={stats || {}}
-            onSelectHex={setSelectedHex}
-          />
+        <div
+          className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl border border-borderGray">
+          <MapComponent listings={listings || []} hexStats={stats || {}} onSelectHex={setSelectedHex}/>
         </div>
       </div>
 
       {selectedHex && (
-        <AnalyticsPanel
-          selectedHex={selectedHex}
-          stats={stats || {}}
-          onClose={() => setSelectedHex(null)}
-        />
+        <AnalyticsPanel selectedHex={selectedHex} stats={stats || {}} onClose={() => setSelectedHex(null)}/>
       )}
 
-      <PropertyListings listings={listings || []} />
+      <div>
+        {currentPage > totalPages ? (
+          <div>No available data for page {currentPage}</div>
+        ) : (
+          <>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+            <PropertyListings listings={listings || []}/>
+          </>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Home;
-

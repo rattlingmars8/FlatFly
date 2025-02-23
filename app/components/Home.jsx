@@ -1,24 +1,22 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {useState, useMemo, useCallback, useEffect} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 import useSWR from "swr";
 import FilterSection from "./FilterSection";
 import PropertyListings from "./PropertyListings";
 import AnalyticsPanel from "./AnalyticsPanel";
 import Pagination from "@/app/components/Pagination";
-import { fetcher, useListings } from "@/app/hooks/useListings";
-import { ClipLoader } from "react-spinners";
+import {fetcher, useListings} from "@/app/hooks/useListings";
+import Skeleton from "react-loading-skeleton";
+import 'react-loading-skeleton/dist/skeleton.css';
 import NoDataMessage from "@/app/components/NoDataMessage";
+import 'react-loading-skeleton/dist/skeleton.css'
 
-const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
+const MapComponent = dynamic(() => import("./MapComponent"), {ssr: false});
 
 const defaultFilters = {
-  minPrice: "",
-  maxPrice: "",
-  minArea: "",
-  maxArea: "",
-  disposition: [],
+  minPrice: "", maxPrice: "", minArea: "", maxArea: "", disposition: [],
 };
 
 const Home = () => {
@@ -31,10 +29,8 @@ const Home = () => {
     const maxPrice = searchParams.get("maxPrice") || "";
     const minArea = searchParams.get("minArea") || "";
     const maxArea = searchParams.get("maxArea") || "";
-    const disposition = searchParams.get("disposition")
-      ? searchParams.get("disposition").split(",")
-      : [];
-    return { minPrice, maxPrice, minArea, maxArea, disposition };
+    const disposition = searchParams.get("disposition") ? searchParams.get("disposition").split(",") : [];
+    return {minPrice, maxPrice, minArea, maxArea, disposition};
   }, [searchParams]);
 
   const [formFilters, setFormFilters] = useState(defaultFilters);
@@ -63,8 +59,8 @@ const Home = () => {
     return sp.toString();
   }, [filtersFromUrl, searchParams]);
 
-  const { listings, totalMatches, totalPages, currentPage, listingsError, loading } = useListings(listingsQueryString);
-  const { data: stats, error: statsError } = useSWR("/api/stats", fetcher);
+  const {listings, totalMatches, totalPages, currentPage, listingsError, loading} = useListings(listingsQueryString);
+  const {data: stats, error: statsError} = useSWR("/api/stats", fetcher);
 
   const handleFilterChange = useCallback((newFilters) => {
     setFormFilters(newFilters);
@@ -82,24 +78,20 @@ const Home = () => {
       }
     });
     params.set("page", "1");
-    router.push(`/?${params.toString()}`, undefined, { shallow: true });
+    router.push(`/?${params.toString()}`, {scroll: false});
   }, [formFilters, router]);
 
   const handleFormReset = useCallback(() => {
-    router.push("/", undefined, { shallow: true });
+    router.push("/",{scroll: false});
   }, [router]);
 
-  const handlePageChange = useCallback(
-    (page) => {
-      const params = Object.fromEntries(searchParams.entries());
-      params.page = page;
-      router.push(`/?${new URLSearchParams(params).toString()}`, undefined, { shallow: true });
-    },
-    [searchParams, router]
-  );
+  const handlePageChange = useCallback((page) => {
+    const params = Object.fromEntries(searchParams.entries());
+    params.page = page;
+    router.push(`/?${new URLSearchParams(params).toString()}`, {scroll: false});
+  }, [searchParams, router]);
 
-  return (
-    <div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
+  return (<div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
       <div className="flex flex-col md:flex-row gap-8 items-center">
         <div className="md:w-1/3 bg-white shadow-xl shadow-purpleShades rounded-2xl p-6 border border-purpleShades">
           <FilterSection
@@ -109,41 +101,31 @@ const Home = () => {
             onReset={handleFormReset}
           />
         </div>
-        <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl shadow-purpleShades border border-borderGray">
-          {statsError ? (
-            <div className="p-4 text-center text-red-500">Error loading map data</div>
-          ) : !stats ? (
+        <div
+          className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl shadow-purpleShades border border-borderGray">
+          {statsError ? (<div className="p-4 text-center text-red-500">Error loading map data</div>) : !stats ? (
             <div className="p-4 flex justify-center items-center h-full">
-              <ClipLoader color="#7065F0FF" size={50} />
-            </div>
-          ) : (
-            <MapComponent listings={listings} hexStats={stats} onSelectHex={setSelectedHex} />
-          )}
+              <Skeleton height="100%" width="100%"/>
+            </div>) : (<MapComponent listings={listings} hexStats={stats} onSelectHex={setSelectedHex}/>)}
         </div>
       </div>
 
       {selectedHex && (
-        <AnalyticsPanel selectedHex={selectedHex} stats={stats || {}} onClose={() => setSelectedHex(null)} />
-      )}
+        <AnalyticsPanel selectedHex={selectedHex} stats={stats || {}} onClose={() => setSelectedHex(null)}/>)}
+
 
       <div>
-        {loading ? (
-          <div className="p-4 flex justify-center items-center">
-            <ClipLoader color="#7065F0FF" size={50} />
-          </div>
-        ) : listingsError ? (
-          <div className="p-4 text-center text-red-500">Error loading listings: {listingsError.message}</div>
-        ) : currentPage > totalPages ? (
-          <NoDataMessage currentPage={currentPage} onReset={handleFormReset} />
-        ) : (
-          <>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-            <PropertyListings listings={listings} totalMatches={totalMatches}/>
-          </>
-        )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            loading={loading}
+          />
+          <PropertyListings loading={loading} currentPage={currentPage} totalPages={totalPages} listings={listings}
+                            totalMatches={totalMatches}/>
       </div>
-    </div>
-  );
+
+    </div>);
 };
 
 export default Home;

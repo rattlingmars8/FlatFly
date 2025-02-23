@@ -50,7 +50,7 @@ const MapComponent = ({ listings, onSelectHex }) => {
 
   return (
     <MapContainer
-      center={[50.102482, 14.566278]}
+      center={[50.087805, 14.416713]}
       zoom={13}
       style={{ height: "100%", width: "100%" }}
     >

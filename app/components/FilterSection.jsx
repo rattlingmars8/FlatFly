@@ -91,13 +91,13 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
               />
               <label
                 htmlFor={`disposition-${option}`}
-                className={`flex items-center space-x-3 text-sm text-text hover:text-accent hover:cursor-pointer ${
-                  filters.disposition.includes(option) ? "text-accent" : ""
+                className={`flex items-center space-x-3 text-sm text-text hover:text-primary hover:cursor-pointer ${
+                  filters.disposition.includes(option) ? "text-primary" : ""
                 }`}
               >
                 <span
                   className={`inline-block w-5 h-5 rounded border border-borderGray relative ${
-                    filters.disposition.includes(option) ? "bg-accent border-accent" : ""
+                    filters.disposition.includes(option) ? "bg-primary border-primary" : ""
                   }`}
                 >
                   {filters.disposition.includes(option) && (
@@ -114,13 +114,13 @@ const FilterSection = ({ filters, onFilterChange, onSubmit, onReset }) => {
         <button
           type="button"
           onClick={handleReset}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+          className="btn-secondary"
         >
           Reset
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-accent text-white rounded hover:bg-accent-dark"
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-secondary"
         >
           Apply Filters
         </button>

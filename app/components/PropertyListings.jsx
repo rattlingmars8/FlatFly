@@ -1,7 +1,17 @@
-const PropertyListings = ({ listings }) => {
+const PropertyListings = ({ listings, totalMatches }) => {
   return (
     <>
-      <h2 className="text-2xl font-semibold text-primary">Property Listings</h2>
+      <div className="bg-purpleShades p-6 rounded-lg shadow-md shadow-purpleShades mb-6 border-secondary border-2">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Property Listings</h2>
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium text-gray-700">
+            Total Matches: <span className="font-semibold text-primary">{totalMatches}</span>
+          </h3>
+          <p className="text-gray-600">
+            Shown: <span className="font-semibold text-primary">{listings.length}</span>
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {listings.map((listing) => (

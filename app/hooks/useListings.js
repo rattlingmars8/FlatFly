@@ -14,17 +14,17 @@ export const fetcher = async (url) => {
 };
 
 export function useListings(queryString) {
-  const {data: responseData, error: listingsError} = useSWR(
+  const { data: responseData, error: listingsError } = useSWR(
     `/api/listings${queryString ? `?${queryString}` : ""}`,
     fetcher
   );
 
+  const loading = !responseData && !listingsError;
   const listings = responseData?.listings || [];
   const totalMatches = responseData?.totalMatches || 0;
   const totalPages = responseData?.totalPages || 0;
   const currentPage = responseData?.currentPage || 1;
 
-  return {listings, totalMatches, totalPages, currentPage, listingsError}
-
+  return { listings, totalMatches, totalPages, currentPage, listingsError, loading };
 }
 

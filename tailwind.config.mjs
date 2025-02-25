@@ -13,7 +13,7 @@ export default {
                 background: "#F8F9FA",
                 text: "#000929",
                 borderGray: "#E0E5EC",
-                secondary: "#100A55",
+                secondary: "#554ccf",
             },
         },
     },

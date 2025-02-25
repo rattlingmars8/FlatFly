@@ -1,15 +1,35 @@
 import { motion } from "framer-motion";
 import { PieChart } from "react-minimal-pie-chart";
+import NoDataMessage from "./NoDataMessage";
 
 const AnalyticsPanel = ({ selectedHex, stats, onClose }) => {
   const hexStats = stats[selectedHex];
-  if (!hexStats) return null;
 
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
     exit: { opacity: 0, scale: 0.9, transition: { duration: 0.5 } },
   };
+
+  if (!hexStats) {
+    return (
+      <motion.div
+        className="w-full md:w-1/2 bg-background p-6 rounded-2xl shadow-2xl border border-borderGray m-4 relative self-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        <button
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+        <NoDataMessage currentPage={selectedHex} />
+      </motion.div>
+    );
+  }
 
   const colors = [
     "#4CAF50",

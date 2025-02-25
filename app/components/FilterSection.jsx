@@ -130,7 +130,7 @@ const FilterSection = ({
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-secondary flex items-center justify-center w-32"
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-secondary flex items-center justify-center transition w-32"
           disabled={loading}
         >
           {loading ? <ClipLoader size={24} color="#fff" /> : "Apply Filters"}

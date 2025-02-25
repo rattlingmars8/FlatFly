@@ -69,3 +69,9 @@ export const flatType = [
 export const formatNumber = (value) => {
   return value ? new Intl.NumberFormat("en-US").format(value) : "";
 };
+
+export const formatDate = (dateString) => {
+  const options = { year: "numeric", month: "short", day: "numeric" };
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, options);
+};

@@ -10,7 +10,6 @@ import Pagination from "@/app/components/Pagination";
 import { fetcher, useListings } from "@/app/hooks/useListings";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import NoDataMessage from "@/app/components/NoDataMessage";
 import { AnimatePresence } from "framer-motion";
 
 const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
@@ -117,6 +116,7 @@ const Home = () => {
             <MapComponent
               listings={listings}
               hexStats={stats}
+              selectedHex={selectedHex}
               onSelectHex={setSelectedHex}
             />
           )}

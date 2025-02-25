@@ -8,13 +8,12 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import { cellToBoundary, latLngToCell } from "h3-js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import L from "leaflet";
 
-const MapComponent = ({ listings, onSelectHex }) => {
+const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
   const [hexPolygons, setHexPolygons] = useState([]);
 
-  // Example "881e354a31fffff"
   const fixedResolution = 8;
 
   const customIcon = L.icon({
@@ -28,11 +27,10 @@ const MapComponent = ({ listings, onSelectHex }) => {
     useMapEvents({
       click: (e) => {
         const { lat, lng } = e.latlng;
-
         const h3Index = latLngToCell(lat, lng, fixedResolution);
 
-        if (hexPolygons.some((hex) => hex.hexId === h3Index)) {
-          setHexPolygons((prev) => prev.filter((hex) => hex.hexId !== h3Index));
+        if (hexPolygons.length > 0 && hexPolygons[0].hexId === h3Index) {
+          setHexPolygons([]);
           onSelectHex(null);
         } else {
           const boundary = cellToBoundary(h3Index, true).map(([lat, lng]) => [
@@ -40,13 +38,19 @@ const MapComponent = ({ listings, onSelectHex }) => {
             lat,
           ]);
           const newHex = { hexId: h3Index, positions: boundary };
-          setHexPolygons((prev) => [...prev, newHex]);
+          setHexPolygons([newHex]);
           onSelectHex(h3Index);
         }
       },
     });
     return null;
   };
+
+  useEffect(() => {
+    if (!selectedHex) {
+      setHexPolygons([]);
+    }
+  }, [selectedHex]);
 
   return (
     <MapContainer
@@ -62,9 +66,7 @@ const MapComponent = ({ listings, onSelectHex }) => {
           positions={polygon.positions}
           eventHandlers={{
             click: () => {
-              setHexPolygons((prev) =>
-                prev.filter((hex) => hex.hexId !== polygon.hexId),
-              );
+              setHexPolygons([]);
               onSelectHex(null);
             },
           }}

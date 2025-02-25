@@ -1,3 +1,5 @@
+import { formatNumber } from "@/utils/dataUtils";
+
 const AppliedFilters = ({ filters }) => {
   const { minPrice, maxPrice, minArea, maxArea, disposition } = filters;
   const hasFilters =
@@ -17,8 +19,8 @@ const AppliedFilters = ({ filters }) => {
           Applied Filters:
         </h3>
         <ul className="list-disc ml-5 text-gray-700">
-          {minPrice && <li>Min Price: {minPrice}</li>}
-          {maxPrice && <li>Max Price: {maxPrice}</li>}
+          {minPrice && <li>Min Price: {formatNumber(minPrice)}</li>}
+          {maxPrice && <li>Max Price: {formatNumber(maxPrice)}</li>}
           {minArea && <li>Min Area: {minArea}</li>}
           {maxArea && <li>Max Area: {maxArea}</li>}
           {disposition && disposition.length > 0 && (

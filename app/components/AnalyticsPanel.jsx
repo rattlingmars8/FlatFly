@@ -84,13 +84,6 @@ const AnalyticsPanel = ({ selectedHex, stats, onClose }) => {
           lineWidth={20}
           paddingAngle={2}
           rounded
-          label={({ dataEntry }) => `${Math.round(dataEntry.percentage)}%`}
-          labelStyle={{
-            fontSize: "10px",
-            fontFamily: "sans-serif",
-            fill: "#fff",
-          }}
-          labelPosition={0}
           style={{ height: "200px" }}
         />
         {/* legend */}

@@ -100,6 +100,7 @@ const Home = () => {
             onFilterChange={handleFilterChange}
             onSubmit={handleFormSubmit}
             onReset={handleFormReset}
+            loading={loading}
           />
         </div>
         <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl shadow-purpleShades border border-borderGray">

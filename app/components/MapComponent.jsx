@@ -51,7 +51,7 @@ const MapComponent = ({ listings, onSelectHex }) => {
   return (
     <MapContainer
       center={[50.087805, 14.416713]}
-      zoom={13}
+      zoom={11}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

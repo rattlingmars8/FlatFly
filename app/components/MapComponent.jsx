@@ -18,8 +18,8 @@ const MapComponent = ({ listings, onSelectHex }) => {
   const fixedResolution = 8;
 
   const customIcon = L.icon({
-    iconUrl: "/marker-icon.svg",
-    iconSize: [20, 30],
+    iconUrl: "/map-pointer.svg",
+    iconSize: [40, 30],
     iconAnchor: [10, 30],
     popupAnchor: [0, -35],
   });

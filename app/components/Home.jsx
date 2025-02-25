@@ -129,19 +129,18 @@ const Home = () => {
         />
       )}
 
-      <div>
+      <div className="flex flex-col gap-8">
+        <PropertyListings
+          loading={loading}
+          listings={listings}
+          totalMatches={totalMatches}
+          filters={filtersFromUrl}
+        />
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           queryParams={searchParams}
           loading={loading}
-        />
-        <PropertyListings
-          loading={loading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          listings={listings}
-          totalMatches={totalMatches}
         />
       </div>
     </div>

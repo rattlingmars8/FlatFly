@@ -65,3 +65,7 @@ export const flatType = [
   "6 and more",
   "Atypical",
 ];
+
+export const formatNumber = (value) => {
+  return value ? new Intl.NumberFormat("en-US").format(value) : "";
+};

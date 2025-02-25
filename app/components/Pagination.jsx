@@ -24,6 +24,8 @@ export default function Pagination({
     );
   }
 
+  if (totalPages === 0) return null;
+
   let pageButtons;
   if (currentPage === totalPages) {
     pageButtons = [currentPage];
@@ -39,7 +41,6 @@ export default function Pagination({
       {currentPage > 1 && (
         <Link
           href={buildLink(currentPage - 1)}
-          scroll={false}
           className="text-primary hover:text-secondary"
         >
           <CiCircleChevLeft className="w-[40px] h-[40px]" />
@@ -54,7 +55,6 @@ export default function Pagination({
           <Link
             key={idx}
             href={buildLink(page)}
-            scroll={false}
             className={`btn-secondary__nav-link px-3 py-2 ${
               page === currentPage ? "!bg-primary !text-white" : ""
             }`}
@@ -66,7 +66,6 @@ export default function Pagination({
       {currentPage < totalPages && (
         <Link
           href={buildLink(currentPage + 1)}
-          scroll={false}
           className="text-primary hover:text-secondary"
         >
           <CiCircleChevRight className="w-[40px] h-[40px]" />

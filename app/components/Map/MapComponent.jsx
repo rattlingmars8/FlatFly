@@ -10,6 +10,7 @@ import {
 import { cellToBoundary, latLngToCell } from "h3-js";
 import { useState, useEffect } from "react";
 import L from "leaflet";
+import PropertyCard from "@/app/components/Cards/PropertyCard.jsx";
 
 const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
   const [hexPolygons, setHexPolygons] = useState([]);
@@ -19,8 +20,7 @@ const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
   const customIcon = L.icon({
     iconUrl: "/map-pointer.svg",
     iconSize: [40, 30],
-    iconAnchor: [10, 30],
-    popupAnchor: [0, -35],
+    popupAnchor: [0, -15],
   });
 
   const MapClickHandler = () => {
@@ -83,12 +83,7 @@ const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
           icon={customIcon}
         >
           <Popup>
-            <div>
-              <h3>{listing.name}</h3>
-              <p>{listing.price.toLocaleString()} Kč</p>
-              <p>{listing.area} m²</p>
-              <p>{listing.locality}</p>
-            </div>
+            <PropertyCard listing={listing} />
           </Popup>
         </Marker>
       ))}

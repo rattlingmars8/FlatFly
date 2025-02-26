@@ -7,7 +7,7 @@ import {
   MdCalendarMonth,
   MdSquareFoot,
 } from "react-icons/md";
-import { formatDate } from "@/utils/dataUtils";
+import { formatDate } from "@/utils/dataUtils.js";
 
 const Modal = ({ isOpen, onClose, listing }) => {
   useEffect(() => {

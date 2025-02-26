@@ -3,16 +3,18 @@ import dynamic from "next/dynamic";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import FilterSection from "./FilterSection";
-import PropertyListings from "./PropertyListings";
-import AnalyticsPanel from "./AnalyticsPanel";
-import Pagination from "@/app/components/Pagination";
+import FilterSection from "./Filter/FilterSection.jsx";
+import PropertyListings from "./Listings/PropertyListings.jsx";
+import AnalyticsPanel from "./Analytics/AnalyticsPanel.jsx";
+import Pagination from "@/app/components/Listings/Pagination.jsx";
 import { fetcher, useListings } from "@/app/hooks/useListings";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { AnimatePresence } from "framer-motion";
 
-const MapComponent = dynamic(() => import("./MapComponent"), { ssr: false });
+const MapComponent = dynamic(() => import("./Map/MapComponent.jsx"), {
+  ssr: false,
+});
 
 const defaultFilters = {
   minPrice: "",
@@ -92,60 +94,65 @@ const Home = () => {
   }, [router]);
 
   return (
-    <div className="flex flex-col gap-8 p-8 max-w-screen-xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-8 items-center">
-        <div className="md:w-1/3 bg-white shadow-xl shadow-purpleShades rounded-2xl p-6 border border-purpleShades">
-          <FilterSection
-            filters={formFilters}
-            onFilterChange={handleFilterChange}
-            onSubmit={handleFormSubmit}
-            onReset={handleFormReset}
+    <div className="w-full p-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Filters, Property Listings, and Pagination */}
+        <div className="order-1 lg:order-2 flex flex-col gap-8 lg:w-2/3">
+          <div className="bg-white shadow-xl rounded-2xl p-6 border border-purpleShades">
+            <FilterSection
+              filters={formFilters}
+              onFilterChange={handleFilterChange}
+              onSubmit={handleFormSubmit}
+              onReset={handleFormReset}
+              loading={loading}
+            />
+          </div>
+
+          <PropertyListings
+            loading={loading}
+            listings={listings}
+            totalMatches={totalMatches}
+            filters={filtersFromUrl}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            queryParams={searchParams}
             loading={loading}
           />
         </div>
-        <div className="md:w-2/3 w-full relative h-[50vh] md:h-[60vh] rounded-2xl overflow-hidden shadow-xl shadow-purpleShades border border-borderGray">
-          {statsError ? (
-            <div className="p-4 text-center text-red-500">
-              Error loading map data
-            </div>
-          ) : !stats ? (
-            <div className="p-4 flex justify-center items-center h-full">
-              <Skeleton height="100%" width="100%" />
-            </div>
-          ) : (
-            <MapComponent
-              listings={listings}
-              hexStats={stats}
-              selectedHex={selectedHex}
-              onSelectHex={setSelectedHex}
-            />
-          )}
+
+        {/* Map and Analytics Panel */}
+        <div className="order-2 lg:order-1 flex flex-col gap-4 lg:w-1/3">
+          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-borderGray h-[50vh] lg:h-[90vh]">
+            {statsError ? (
+              <div className="p-4 text-center text-red-500">
+                Error loading map data
+              </div>
+            ) : !stats ? (
+              <div className="p-4 flex justify-center items-center h-full">
+                <Skeleton height="100%" width="100%" />
+              </div>
+            ) : (
+              <MapComponent
+                listings={listings}
+                hexStats={stats}
+                selectedHex={selectedHex}
+                onSelectHex={setSelectedHex}
+              />
+            )}
+          </div>
+
+          <AnimatePresence>
+            {selectedHex && (
+              <AnalyticsPanel
+                selectedHex={selectedHex}
+                stats={stats || {}}
+                onClose={() => setSelectedHex(null)}
+              />
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-
-      <AnimatePresence>
-        {selectedHex && (
-          <AnalyticsPanel
-            selectedHex={selectedHex}
-            stats={stats || {}}
-            onClose={() => setSelectedHex(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      <div className="flex flex-col gap-8">
-        <PropertyListings
-          loading={loading}
-          listings={listings}
-          totalMatches={totalMatches}
-          filters={filtersFromUrl}
-        />
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          queryParams={searchParams}
-          loading={loading}
-        />
       </div>
     </div>
   );

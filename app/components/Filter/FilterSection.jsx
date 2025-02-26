@@ -1,5 +1,5 @@
-import CheckIcon from "./CheckIcon";
-import { flatType, formatNumber } from "@/utils/dataUtils";
+import CheckIcon from "./CheckIcon.jsx";
+import { flatType, formatNumber } from "@/utils/dataUtils.js";
 import { ClipLoader } from "react-spinners";
 
 const FilterSection = ({
@@ -126,7 +126,7 @@ const FilterSection = ({
           className="btn-secondary flex items-center justify-center w-24"
           disabled={loading}
         >
-          {loading ? <ClipLoader size={24} color="primary" /> : "Reset"}
+          Reset
         </button>
         <button
           type="submit"

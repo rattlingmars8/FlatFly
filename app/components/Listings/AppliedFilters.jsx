@@ -1,4 +1,4 @@
-import { formatNumber } from "@/utils/dataUtils";
+import { formatNumber } from "@/utils/dataUtils.js";
 
 const AppliedFilters = ({ filters }) => {
   const { minPrice, maxPrice, minArea, maxArea, disposition } = filters;

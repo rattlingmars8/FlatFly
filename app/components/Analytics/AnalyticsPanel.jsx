@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { PieChart } from "react-minimal-pie-chart";
-import NoDataMessage from "./NoDataMessage";
+import NoDataMessage from "../NoDataMessage.jsx";
 
 const AnalyticsPanel = ({ selectedHex, stats, onClose }) => {
   const hexStats = stats[selectedHex];
@@ -14,7 +14,7 @@ const AnalyticsPanel = ({ selectedHex, stats, onClose }) => {
   if (!hexStats) {
     return (
       <motion.div
-        className="w-full md:w-1/2 bg-background p-6 rounded-2xl shadow-2xl border border-borderGray m-4 relative self-center"
+        className="w-full bg-background p-6 rounded-2xl shadow-2xl border border-borderGray m-4 relative self-center"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -49,7 +49,7 @@ const AnalyticsPanel = ({ selectedHex, stats, onClose }) => {
 
   return (
     <motion.div
-      className="w-full md:w-1/2 bg-background p-6 rounded-2xl shadow-2xl border border-borderGray m-4 relative self-center"
+      className="w-full bg-background p-6 rounded-2xl shadow-2xl border border-borderGray m-4 relative self-center"
       variants={containerVariants}
       initial="hidden"
       animate="visible"

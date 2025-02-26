@@ -1,7 +1,7 @@
 import Skeleton from "react-loading-skeleton";
-import AppliedFilters from "./AppliedFilters";
-import ListingCard from "./ListingCard";
-import NoDataMessage from "./NoDataMessage";
+import AppliedFilters from "./AppliedFilters.jsx";
+import ListingCard from "../Cards/ListingCard.jsx";
+import NoDataMessage from "../NoDataMessage.jsx";
 
 const PropertyListings = ({ loading, listings, totalMatches, filters }) => {
   return (

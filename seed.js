@@ -1,15 +1,18 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import Listing from "@/models/Listing.js";
+import Listing from "./models/Listing.js";
 
 const uri = process.env.MONGODB_URI;
+const dbName = process.env.DB_NAME;
 
 async function seed() {
   try {
-    console.log(uri);
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, { dbName: dbName });
     console.log("Connected to MongoDB");
 
     const __filename = fileURLToPath(import.meta.url);
@@ -66,7 +69,7 @@ async function seed() {
   } catch (error) {
     console.error("Error seeding database:", error);
   } finally {
-    mongoose.disconnect();
+    await mongoose.disconnect();
   }
 }
 

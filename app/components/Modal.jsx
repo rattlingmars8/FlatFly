@@ -70,7 +70,7 @@ const Modal = ({ isOpen, onClose, listing }) => {
                   <span>{listing.locality}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-gray-100 p-3 sm:p-4 rounded-lg shadow-sm text-sm sm:text-base">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-100 p-4 sm:p-5 rounded-lg shadow-sm text-sm sm:text-base">
                   <div className="flex items-center gap-1 sm:gap-2">
                     <MdAttachMoney className="text-green-600 w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="font-semibold text-gray-800">Price:</span>

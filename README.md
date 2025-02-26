@@ -48,59 +48,57 @@ FlatFly is an interactive real estate dashboard that allows users to explore pro
 ## Project Structure
 ```
 .
-├── README.md
+├── README.md - Project overview and setup instructions.
 ├── app
-│   ├── api
-│   │   ├── listings
-│   │   │   └── route.js
-│   │   └── stats
-│   │       └── route.js
-│   ├── components
-│   │   ├── AnalyticsPanel.jsx
-│   │   ├── AppliedFilters.jsx
-│   │   ├── CheckIcon.jsx
-│   │   ├── FilterSection.jsx
-│   │   ├── Home.jsx
-│   │   ├── ListingCard.jsx
-│   │   ├── MapComponent.jsx
-│   │   ├── Modal.jsx
-│   │   ├── NoDataMessage.jsx
-│   │   ├── Pagination.jsx
-│   │   └── PropertyListings.jsx
-│   ├── fonts
-│   │   └── Quicksand
-│   │       ├── Quicksand-VariableFont_wght.ttf
-│   │       └── static
-│   │           ├── Quicksand-Bold.ttf
-│   │           ├── Quicksand-Light.ttf
-│   │           ├── Quicksand-Medium.ttf
-│   │           ├── Quicksand-Regular.ttf
-│   │           └── Quicksand-SemiBold.ttf
-│   ├── globals.css
-│   ├── hooks
-│   │   └── useListings.js
-│   ├── layout.js
-│   ├── lib
-│   │   └── db.js
-│   └── page.js
-├── assignment.md
-├── eslint.config.mjs
-├── jsconfig.json
+│   ├── api
+│   │   ├── listings
+│   │   │   └── route.js - API endpoint handling property listings.
+│   │   └── stats
+│   │       └── route.js - API endpoint providing H3 region statistics.
+│   ├── components
+│   │   ├── Analytics
+│   │   │   └── AnalyticsPanel.jsx - Displays detailed analytics when a map hex is selected.
+│   │   ├── Cards
+│   │   │   ├── ListingCard.jsx - Card component for summarizing a property listing.
+│   │   │   └── PropertyCard.jsx - Detailed card component for individual properties.
+│   │   ├── Filter
+│   │   │   ├── CheckIcon.jsx - Icon component used within filter controls.
+│   │   │   └── FilterSection.jsx - Renders the filtering options for property searches.
+│   │   ├── Home.jsx - Main landing page component.
+│   │   ├── Listings
+│   │   │   ├── AppliedFilters.jsx - Displays currently applied filters.
+│   │   │   ├── Modal.jsx - Modal dialog for additional listing details.
+│   │   │   ├── Pagination.jsx - Controls for navigating through pages of listings.
+│   │   │   └── PropertyListings.jsx - Renders the list of property listings.
+│   │   ├── Map
+│   │   │   └── MapComponent.jsx - Interactive map displaying property locations and stats.
+│   │   └── NoDataMessage.jsx - Shown when there is no data available.
+│   ├── globals.css - Global stylesheet for consistent styling across the app.
+│   ├── hooks
+│   │   └── useListings.js - Custom hook for fetching and managing property listings.
+│   ├── layout.js - Defines the overall application layout for Next.js.
+│   ├── lib
+│   │   └── db.js - Handles database connections and related utilities.
+│   └── page.js - Main page route for the application.
+├── assignment.md - Contains project assignment details.
+├── eslint.config.mjs - ESLint configuration for code quality.
+├── jsconfig.json - JavaScript configuration including path aliases.
 ├── models
-│   └── Listing.js
-├── next.config.mjs
-├── package-lock.json
-├── package.json
-├── postcss.config.mjs
+│   └── Listing.js - Mongoose schema and model for property listings.
+├── next.config.mjs - Configuration settings for Next.js.
+├── package-lock.json - Auto-generated lock file for npm dependencies.
+├── package.json - Project metadata and dependency definitions.
+├── postcss.config.mjs - Configuration for PostCSS.
 ├── public
-│   ├── data
-│   │   ├── sample.json
-│   │   └── stats.json
-│   └── map-pointer.svg
-├── seed.js
-├── tailwind.config.mjs
+│   ├── data
+│   │   ├── sample.json - Seed data for property listings (to be uploaded to the remote database).
+│   │   └── stats.json - Local statistics for H3 regions (fetched from the local machine or deployment server).
+│   └── map-pointer.svg - SVG asset used as the map marker.
+├── seed.js - Database seeding script; run via `node seed.js` to import `sample.json` data.
+├── tailwind.config.mjs - Tailwind CSS configuration for custom styling.
 └── utils
-    └── dataUtils.js
+    └── dataUtils.js - Utility functions for processing and transforming data.
+
 
 ```
 

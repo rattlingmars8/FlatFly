@@ -11,7 +11,7 @@ import {
 } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import { cellToBoundary, latLngToCell } from "h3-js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import PropertyCard from "@/app/components/Cards/PropertyCard.jsx";
 
@@ -23,6 +23,7 @@ const MapEventsHandler = ({
   fixedResolution,
 }) => {
   const map = useMap();
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     if (map) {
@@ -39,14 +40,17 @@ const MapEventsHandler = ({
 
   useMapEvents({
     moveend: () => {
-      const bounds = map.getBounds();
-      onViewportChange({
-        swLat: bounds.getSouthWest().lat,
-        swLng: bounds.getSouthWest().lng,
-        neLat: bounds.getNorthEast().lat,
-        neLng: bounds.getNorthEast().lng,
-        zoom: map.getZoom(),
-      });
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const bounds = map.getBounds();
+        onViewportChange({
+          swLat: bounds.getSouthWest().lat,
+          swLng: bounds.getSouthWest().lng,
+          neLat: bounds.getNorthEast().lat,
+          neLng: bounds.getNorthEast().lng,
+          zoom: map.getZoom(),
+        });
+      }, 1000);
     },
     click: (e) => {
       const { lat, lng } = e.latlng;

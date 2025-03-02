@@ -242,7 +242,7 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative rounded-2xl overflow-hidden shadow-xl border border-borderGray h-[40vh] md:h-[50vh]"
+          className="relative rounded-2xl overflow-hidden shadow-xl border border-borderGray h-[55vh] md:h-[50vh]"
         >
           {statsError ? (
             <div className="p-4 text-center text-red-500">

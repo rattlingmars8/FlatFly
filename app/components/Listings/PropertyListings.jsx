@@ -1,5 +1,3 @@
-"use client";
-
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import ListingCard from "../Cards/ListingCard.jsx";
@@ -113,13 +111,13 @@ const PropertyListings = ({ loading, listings, totalMatches }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 auto-rows-fr"
           >
             {listings.map((listing) => (
               <motion.div
                 key={listing._id}
                 variants={itemVariants}
-                className="h-full"
+                className="flex flex-col h-full"
               >
                 <ListingCard listing={listing} />
               </motion.div>

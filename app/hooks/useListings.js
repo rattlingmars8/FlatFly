@@ -1,6 +1,5 @@
 import useSWR from "swr";
 
-
 export const fetcher = async (url) => {
   const res = await fetch(url);
   if (!res.ok) {
@@ -16,15 +15,23 @@ export const fetcher = async (url) => {
 export function useListings(queryString) {
   const { data: responseData, error: listingsError } = useSWR(
     `/api/listings${queryString ? `?${queryString}` : ""}`,
-    fetcher
+    fetcher,
   );
 
   const loading = !responseData && !listingsError;
   const listings = responseData?.listings || [];
+  const mapListings = responseData?.mapListings || [];
   const totalMatches = responseData?.totalMatches || 0;
   const totalPages = responseData?.totalPages || 0;
   const currentPage = responseData?.currentPage || 1;
 
-  return { listings, totalMatches, totalPages, currentPage, listingsError, loading };
+  return {
+    listings,
+    mapListings,
+    totalMatches,
+    totalPages,
+    currentPage,
+    listingsError,
+    loading,
+  };
 }
-

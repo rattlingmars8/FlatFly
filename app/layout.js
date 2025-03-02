@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "leaflet/dist/leaflet.css";
+import "react-leaflet-markercluster/styles";
 import "./globals.css";
 
 const geistSans = Geist({

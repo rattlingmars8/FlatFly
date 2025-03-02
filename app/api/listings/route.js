@@ -1,28 +1,41 @@
-import connectToDB from '../../lib/db';
+import connectToDB from "../../lib/db";
 import Listing from "../../../models/Listing";
 
 const buildQuery = (params) => ({
-  ...( (params.minPrice || params.maxPrice) && {
+  ...((params.minPrice || params.maxPrice) && {
     price: {
       ...(params.minPrice && { $gte: parseFloat(params.minPrice) }),
       ...(params.maxPrice && { $lte: parseFloat(params.maxPrice) }),
     },
   }),
-  ...( (params.minArea || params.maxArea) && {
+  ...((params.minArea || params.maxArea) && {
     flat_area: {
       ...(params.minArea && { $gte: parseFloat(params.minArea) }),
       ...(params.maxArea && { $lte: parseFloat(params.maxArea) }),
     },
   }),
-  ...( params.disposition && {
+  ...(params.disposition && {
     $or: params.disposition
       .split(",")
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean)
-      .map(val => ({
+      .map((val) => ({
         $expr: { $gt: [{ $indexOfCP: ["$name", val] }, -1] },
       })),
   }),
+  ...(params.swLat &&
+    params.swLng &&
+    params.neLat &&
+    params.neLng && {
+      latitude: {
+        $gte: parseFloat(params.swLat),
+        $lte: parseFloat(params.neLat),
+      },
+      longitude: {
+        $gte: parseFloat(params.swLng),
+        $lte: parseFloat(params.neLng),
+      },
+    }),
 });
 
 export async function GET(request) {
@@ -33,23 +46,28 @@ export async function GET(request) {
     const params = Object.fromEntries(searchParams.entries());
     const page = parseInt(params.page || "1", 10) || 1;
     const limit = 30;
-
     const query = buildQuery(params);
 
     const totalMatches = await Listing.countDocuments(query);
     const totalPages = Math.ceil(totalMatches / limit);
 
-    const listings = await Listing.find(query)
+    const paginatedListings = await Listing.find(query)
       .sort({ first_seen_at: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
+      .lean();
+
+    const mapListings = await Listing.find(query)
+      .sort({ first_seen_at: -1 })
+      .select("_id latitude longitude")
       .lean();
 
     const responseData = {
       totalMatches,
       totalPages,
       currentPage: page,
-      listings,
+      listings: paginatedListings,
+      mapListings,
     };
 
     return new Response(JSON.stringify(responseData), {

@@ -1,20 +1,83 @@
 "use client";
+
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   Polygon,
+  useMap,
   useMapEvents,
 } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-markercluster";
 import { cellToBoundary, latLngToCell } from "h3-js";
 import { useState, useEffect } from "react";
 import L from "leaflet";
 import PropertyCard from "@/app/components/Cards/PropertyCard.jsx";
 
-const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
-  const [hexPolygons, setHexPolygons] = useState([]);
+const MapEventsHandler = ({
+  onViewportChange,
+  onSelectHex,
+  hexPolygons,
+  setHexPolygons,
+  fixedResolution,
+}) => {
+  const map = useMap();
 
+  useEffect(() => {
+    if (map) {
+      const bounds = map.getBounds();
+      onViewportChange({
+        swLat: bounds.getSouthWest().lat,
+        swLng: bounds.getSouthWest().lng,
+        neLat: bounds.getNorthEast().lat,
+        neLng: bounds.getNorthEast().lng,
+        zoom: map.getZoom(),
+      });
+    }
+  }, [map, onViewportChange]);
+
+  useMapEvents({
+    moveend: () => {
+      const bounds = map.getBounds();
+      onViewportChange({
+        swLat: bounds.getSouthWest().lat,
+        swLng: bounds.getSouthWest().lng,
+        neLat: bounds.getNorthEast().lat,
+        neLng: bounds.getNorthEast().lng,
+        zoom: map.getZoom(),
+      });
+    },
+    click: (e) => {
+      const { lat, lng } = e.latlng;
+      const h3Index = latLngToCell(lat, lng, fixedResolution);
+      if (hexPolygons.length > 0 && hexPolygons[0].hexId === h3Index) {
+        setHexPolygons([]);
+        onSelectHex(null);
+      } else {
+        const boundary = cellToBoundary(h3Index, true).map(([lat, lng]) => [
+          lng,
+          lat,
+        ]);
+        const newHex = { hexId: h3Index, positions: boundary };
+        setHexPolygons([newHex]);
+        onSelectHex(h3Index);
+      }
+    },
+  });
+
+  return null;
+};
+
+const MapComponent = ({
+  center,
+  zoom,
+  mapListings,
+  selectedHex,
+  onSelectHex,
+  onViewportChange,
+}) => {
+  const [hexPolygons, setHexPolygons] = useState([]);
   const fixedResolution = 8;
 
   const customIcon = L.icon({
@@ -22,29 +85,6 @@ const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
     iconSize: [40, 30],
     popupAnchor: [0, -15],
   });
-
-  const MapClickHandler = () => {
-    useMapEvents({
-      click: (e) => {
-        const { lat, lng } = e.latlng;
-        const h3Index = latLngToCell(lat, lng, fixedResolution);
-
-        if (hexPolygons.length > 0 && hexPolygons[0].hexId === h3Index) {
-          setHexPolygons([]);
-          onSelectHex(null);
-        } else {
-          const boundary = cellToBoundary(h3Index, true).map(([lat, lng]) => [
-            lng,
-            lat,
-          ]);
-          const newHex = { hexId: h3Index, positions: boundary };
-          setHexPolygons([newHex]);
-          onSelectHex(h3Index);
-        }
-      },
-    });
-    return null;
-  };
 
   useEffect(() => {
     if (!selectedHex) {
@@ -54,12 +94,31 @@ const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
 
   return (
     <MapContainer
-      center={[50.087805, 14.416713]}
-      zoom={11}
+      center={center}
+      zoom={zoom}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <MapClickHandler />
+      <MapEventsHandler
+        onViewportChange={onViewportChange}
+        onSelectHex={onSelectHex}
+        hexPolygons={hexPolygons}
+        setHexPolygons={setHexPolygons}
+        fixedResolution={fixedResolution}
+      />
+      <MarkerClusterGroup>
+        {(mapListings || []).map((listing) => (
+          <Marker
+            key={listing._id}
+            position={[listing.latitude, listing.longitude]}
+            icon={customIcon}
+          >
+            <Popup>
+              <PropertyCard listing={listing} />
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
       {hexPolygons.map((polygon) => (
         <Polygon
           key={polygon.hexId}
@@ -75,17 +134,6 @@ const MapComponent = ({ listings, selectedHex, onSelectHex }) => {
           color="blue"
           weight={2}
         />
-      ))}
-      {listings.map((listing) => (
-        <Marker
-          key={listing._id}
-          position={[listing.latitude, listing.longitude]}
-          icon={customIcon}
-        >
-          <Popup>
-            <PropertyCard listing={listing} />
-          </Popup>
-        </Marker>
       ))}
     </MapContainer>
   );

@@ -12,7 +12,7 @@ import { formatDate } from "@/utils/dataUtils.js";
 const PropertyCard = ({ listing }) => {
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-6 w-full">
         <h3
           className="text-xl font-bold text-text mb-2"
           onClick={(e) => e.stopPropagation()}

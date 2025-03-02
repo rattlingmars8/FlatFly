@@ -1,5 +1,4 @@
 "use client";
-
 import {
   MapContainer,
   TileLayer,
@@ -11,9 +10,9 @@ import {
 } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import { cellToBoundary, latLngToCell } from "h3-js";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
-import PropertyCard from "@/app/components/Cards/PropertyCard.jsx";
+import MapPropertyCard from "../Cards/MapPropertyCard.jsx";
 
 const MapEventsHandler = ({
   onViewportChange,
@@ -50,7 +49,7 @@ const MapEventsHandler = ({
           neLng: bounds.getNorthEast().lng,
           zoom: map.getZoom(),
         });
-      }, 1000);
+      }, 750);
     },
     click: (e) => {
       const { lat, lng } = e.latlng;
@@ -84,17 +83,48 @@ const MapComponent = ({
   const [hexPolygons, setHexPolygons] = useState([]);
   const fixedResolution = 8;
 
-  const customIcon = L.icon({
-    iconUrl: "/map-pointer.svg",
-    iconSize: [40, 30],
-    popupAnchor: [0, -15],
-  });
+  const customIcon = useMemo(
+    () =>
+      L.icon({
+        iconUrl: "/map-pointer.svg",
+        iconSize: [40, 30],
+        popupAnchor: [0, -15],
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (!selectedHex) {
       setHexPolygons([]);
     }
   }, [selectedHex]);
+
+  const uniqueMapListings = useMemo(() => {
+    const unique = new Map();
+    (mapListings || []).forEach((item) => {
+      unique.set(item._id, item);
+    });
+    return Array.from(unique.values());
+  }, [mapListings]);
+
+  const markers = useMemo(
+    () => (
+      <MarkerClusterGroup disableClusteringAtZoom={18}>
+        {uniqueMapListings.map((listing) => (
+          <Marker
+            key={listing._id}
+            position={[listing.latitude, listing.longitude]}
+            icon={customIcon}
+          >
+            <Popup className={"min-w-[300px]"}>
+              <MapPropertyCard id={listing._id} />
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
+    ),
+    [uniqueMapListings, customIcon],
+  );
 
   return (
     <MapContainer
@@ -110,19 +140,7 @@ const MapComponent = ({
         setHexPolygons={setHexPolygons}
         fixedResolution={fixedResolution}
       />
-      <MarkerClusterGroup>
-        {(mapListings || []).map((listing) => (
-          <Marker
-            key={listing._id}
-            position={[listing.latitude, listing.longitude]}
-            icon={customIcon}
-          >
-            <Popup>
-              <PropertyCard listing={listing} />
-            </Popup>
-          </Marker>
-        ))}
-      </MarkerClusterGroup>
+      {markers}
       {hexPolygons.map((polygon) => (
         <Polygon
           key={polygon.hexId}

@@ -1,60 +1,132 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
-import AppliedFilters from "./AppliedFilters.jsx";
 import ListingCard from "../Cards/ListingCard.jsx";
 import NoDataMessage from "../NoDataMessage.jsx";
+import { Building2 } from "lucide-react";
 
-const PropertyListings = ({ loading, listings, totalMatches, filters }) => {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 10,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: 10,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+const PropertyListings = ({ loading, listings, totalMatches }) => {
   return (
-    <div className="bg-white p-3 md:p-6 rounded-lg shadow space-y-6 border border-gray-200">
-      <div className="flex flex-col gap-4">
-        <h2 className="text-3xl font-semibold text-gray-900">
-          Property Listings
-        </h2>
-        <div className="flex flex-wrap gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600">
-              Total Matches:
-            </span>
-            <span className="text-xl font-bold text-secondary">
-              {loading ? (
-                <Skeleton inline width={50} height={24} />
-              ) : (
-                totalMatches
-              )}
-            </span>
+    <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purpleShades/10 rounded-lg">
+            <Building2 className="w-5 h-5 text-purpleShades" />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600">Shown:</span>
-            <span className="text-xl font-bold text-secondary">
-              {loading ? (
-                <Skeleton inline width={50} height={24} />
-              ) : (
-                listings.length
-              )}
-            </span>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Available Properties
+            </h2>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>
+                {loading ? <Skeleton width={30} /> : `${totalMatches} total`}
+              </span>
+              <span>•</span>
+              <span>
+                {loading ? <Skeleton width={30} /> : `${listings.length} shown`}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <AppliedFilters filters={filters} />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <AnimatePresence mode="wait">
         {loading ? (
-          Array(10)
-            .fill(null)
-            .map((_, i) => (
-              <Skeleton key={`item-${i}`} className="w-full h-[200px]" />
-            ))
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr"
+          >
+            {Array(9)
+              .fill(null)
+              .map((_, i) => (
+                <motion.div
+                  key={`skeleton-${i}`}
+                  variants={itemVariants}
+                  className="h-full"
+                >
+                  <Skeleton className="w-full h-full min-h-[300px] rounded-xl" />
+                </motion.div>
+              ))}
+          </motion.div>
         ) : listings.length === 0 ? (
-          <div className="col-span-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+            className="col-span-full"
+          >
             <NoDataMessage currentPage="Property Listings" />
-          </div>
+          </motion.div>
         ) : (
-          listings.map((listing) => (
-            <ListingCard key={listing._id} listing={listing} />
-          ))
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+          >
+            {listings.map((listing) => (
+              <motion.div
+                key={listing._id}
+                variants={itemVariants}
+                className="h-full"
+              >
+                <ListingCard listing={listing} />
+              </motion.div>
+            ))}
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 };

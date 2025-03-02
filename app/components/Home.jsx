@@ -10,7 +10,8 @@ import Pagination from "@/app/components/Listings/Pagination.jsx";
 import { fetcher, useListings } from "@/app/hooks/useListings";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import FilterContainer from "@/app/components/Filter/FilterContainer.jsx";
 
 const MapComponent = dynamic(() => import("./Map/MapComponent.jsx"), {
   ssr: false,
@@ -27,6 +28,7 @@ const defaultFilters = {
 const Home = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
 
   const searchString = useMemo(() => searchParams.toString(), [searchParams]);
 
@@ -42,6 +44,14 @@ const Home = () => {
     return { minPrice, maxPrice, minArea, maxArea, disposition };
   }, [searchString]);
 
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filtersFromUrl).some(
+      (value) =>
+        (Array.isArray(value) && value.length > 0) ||
+        (typeof value === "string" && value !== ""),
+    );
+  }, [filtersFromUrl]);
+
   const [formFilters, setFormFilters] = useState(defaultFilters);
   const [selectedHex, setSelectedHex] = useState(null);
   const [mapBounds, setMapBounds] = useState(null);
@@ -52,6 +62,12 @@ const Home = () => {
     setFormFilters(filtersFromUrl);
   }, [filtersFromUrl]);
 
+  useEffect(() => {
+    if (hasActiveFilters) {
+      setIsFilterExpanded(false);
+    }
+  }, [hasActiveFilters]);
+
   const computedCenter = useMemo(() => {
     const params = new URLSearchParams(searchString);
     const swLat = params.get("swLat");
@@ -60,8 +76,8 @@ const Home = () => {
     const neLng = params.get("neLng");
     if (swLat && swLng && neLat && neLng) {
       return [
-        (parseFloat(swLat) + parseFloat(neLat)) / 2,
-        (parseFloat(swLng) + parseFloat(neLng)) / 2,
+        (Number.parseFloat(swLat) + Number.parseFloat(neLat)) / 2,
+        (Number.parseFloat(swLng) + Number.parseFloat(neLng)) / 2,
       ];
     }
     return [50.087805, 14.416713];
@@ -70,7 +86,7 @@ const Home = () => {
   const computedZoom = useMemo(() => {
     const params = new URLSearchParams(searchString);
     const z = params.get("zoom");
-    if (z) return parseFloat(z);
+    if (z) return Number.parseFloat(z);
     return 13;
   }, [searchString]);
 
@@ -162,6 +178,8 @@ const Home = () => {
       params.set("zoom", mapZoom);
     }
     router.push(`/?${params.toString()}`, { scroll: false });
+
+    setIsFilterExpanded(false);
   }, [formFilters, mapBounds, mapZoom, router]);
 
   const handleFormReset = useCallback(() => {
@@ -173,6 +191,8 @@ const Home = () => {
     params.delete("disposition");
     params.set("page", "1");
     router.push(`/?${params.toString()}`, { scroll: false });
+
+    setIsFilterExpanded(true);
   }, [router, searchString]);
 
   const handleViewportChange = useCallback((viewportData) => {
@@ -185,67 +205,89 @@ const Home = () => {
     setMapZoom(viewportData.zoom);
   }, []);
 
+  const toggleFilters = useCallback(() => {
+    setIsFilterExpanded((prev) => !prev);
+  }, []);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filtersFromUrl.minPrice) count++;
+    if (filtersFromUrl.maxPrice) count++;
+    if (filtersFromUrl.minArea) count++;
+    if (filtersFromUrl.maxArea) count++;
+    if (filtersFromUrl.disposition.length) count++;
+    return count;
+  }, [filtersFromUrl]);
+
   return (
-    <div className="w-full p-8">
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="order-1 lg:order-2 flex flex-col gap-8 lg:w-2/3">
-          <div className="bg-white shadow-xl rounded-2xl p-6 border border-purpleShades">
-            <FilterSection
-              filters={formFilters}
-              onFilterChange={handleFilterChange}
-              onSubmit={handleFormSubmit}
-              onReset={handleFormReset}
-              loading={loading}
+    <div className="lg:max-w-[75%] mx-auto xl:px-20 md:px-10 sm:px-6 px-4 py-6">
+      <div className="flex flex-col gap-6">
+        <FilterContainer
+          isExpanded={isFilterExpanded}
+          onToggle={toggleFilters}
+          activeFilterCount={activeFilterCount}
+          filters={filtersFromUrl}
+        >
+          <FilterSection
+            filters={formFilters}
+            onFilterChange={handleFilterChange}
+            onSubmit={handleFormSubmit}
+            onReset={handleFormReset}
+            loading={loading}
+          />
+        </FilterContainer>
+
+        <motion.div
+          layout="position"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative rounded-2xl overflow-hidden shadow-xl border border-borderGray h-[40vh] md:h-[50vh]"
+        >
+          {statsError ? (
+            <div className="p-4 text-center text-red-500">
+              Error loading map data
+            </div>
+          ) : !stats ? (
+            <div className="p-4 flex justify-center items-center h-full">
+              <Skeleton height="100%" width="100%" />
+            </div>
+          ) : (
+            <MapComponent
+              center={computedCenter}
+              zoom={computedZoom}
+              listings={listings}
+              mapListings={mapListings}
+              hexStats={stats}
+              selectedHex={selectedHex}
+              onSelectHex={setSelectedHex}
+              onViewportChange={handleViewportChange}
             />
-          </div>
-          <PropertyListings
-            loading={loading}
-            listings={listings}
-            totalMatches={totalMatches}
-            filters={filtersFromUrl}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            queryParams={searchParams}
-            loading={loading}
-          />
-        </div>
+          )}
+        </motion.div>
 
-        <div className="order-2 lg:order-1 flex flex-col gap-4 lg:w-1/3">
-          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-borderGray h-[50vh] lg:h-[90vh]">
-            {statsError ? (
-              <div className="p-4 text-center text-red-500">
-                Error loading map data
-              </div>
-            ) : !stats ? (
-              <div className="p-4 flex justify-center items-center h-full">
-                <Skeleton height="100%" width="100%" />
-              </div>
-            ) : (
-              <MapComponent
-                center={computedCenter}
-                zoom={computedZoom}
-                listings={listings}
-                mapListings={mapListings}
-                hexStats={stats}
-                selectedHex={selectedHex}
-                onSelectHex={setSelectedHex}
-                onViewportChange={handleViewportChange}
-              />
-            )}
-          </div>
+        <AnimatePresence>
+          {selectedHex && (
+            <AnalyticsPanel
+              selectedHex={selectedHex}
+              stats={stats || {}}
+              onClose={() => setSelectedHex(null)}
+            />
+          )}
+        </AnimatePresence>
 
-          <AnimatePresence>
-            {selectedHex && (
-              <AnalyticsPanel
-                selectedHex={selectedHex}
-                stats={stats || {}}
-                onClose={() => setSelectedHex(null)}
-              />
-            )}
-          </AnimatePresence>
-        </div>
+        <PropertyListings
+          loading={loading}
+          listings={listings}
+          totalMatches={totalMatches}
+        />
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          queryParams={searchParams}
+          loading={loading}
+        />
       </div>
     </div>
   );

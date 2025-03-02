@@ -24,6 +24,8 @@ const MapEventsHandler = ({
   const map = useMap();
   const debounceRef = useRef(null);
 
+  const isPopupOpen = useRef(false);
+
   useEffect(() => {
     if (map) {
       const bounds = map.getBounds();
@@ -38,7 +40,15 @@ const MapEventsHandler = ({
   }, [map, onViewportChange]);
 
   useMapEvents({
+    popupopen: () => {
+      isPopupOpen.current = true;
+    },
+    popupclose: () => {
+      isPopupOpen.current = false;
+    },
     moveend: () => {
+      if (isPopupOpen.current) return; // Забороняємо оновлення, якщо попап відкритий
+
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         const bounds = map.getBounds();
@@ -49,7 +59,7 @@ const MapEventsHandler = ({
           neLng: bounds.getNorthEast().lng,
           zoom: map.getZoom(),
         });
-      }, 750);
+      }, 500);
     },
     click: (e) => {
       const { lat, lng } = e.latlng;
